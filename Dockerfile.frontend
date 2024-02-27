@@ -22,3 +22,16 @@ COPY odbc-driver-configs/odbc.ini /etc/odbc.ini
 
 # Set ServerName to suppress the Apache warning message
 RUN echo 'ServerName localhost' >> /etc/apache2/apache2.conf
+
+# Set the document root to the public directory (if you're using a framework like Laravel, otherwise this can just be /var/www/html)
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+
+# Update the default apache site with the config we created.
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+# Copy the test PHP file into the correct directory
+COPY frontend/ /var/www/html/public/
+
+# Adjust file permissions
+RUN chown -R www-data:www-data /var/www/html
