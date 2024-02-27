@@ -1,0 +1,24 @@
+FROM php:8.2-apache
+
+###########################
+## IBMi ODBC SETUP START ##
+###########################
+
+# install unixodbc
+RUN apt-get update && \
+    ACCEPT_EULA=Y apt-get install -y unixodbc unixodbc-dev 
+
+# install latest IBM i Acceess DB2 Driver
+RUN curl https://public.dhe.ibm.com/software/ibmi/products/odbc/debs/dists/1.1.0/ibmi-acs-1.1.0.list | tee /etc/apt/sources.list.d/ibmi-acs-1.1.0.list && \
+    apt-get update && \
+    apt-get install -y ibm-iaccess 
+
+COPY odbc-driver-configs/odbcinst.ini /etc/odbcinst.ini
+COPY odbc-driver-configs/odbc.ini /etc/odbc.ini
+
+##########################
+## IBMi ODBC SETUP END  ##
+##########################
+
+# Set ServerName to suppress the Apache warning message
+RUN echo 'ServerName localhost' >> /etc/apache2/apache2.conf
