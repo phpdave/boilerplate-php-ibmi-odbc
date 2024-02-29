@@ -1,44 +1,24 @@
 FROM php:8.2-apache
 
-###########################
-## IBMi ODBC SETUP START ##
-###########################
+# Set the document root (modify as needed)
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 
-# Install dependencies for IBM i Access ODBC Driver and PHP ODBC extension
+# Install UnixODBC
+# Install IBM i Access ODBC drivers
+# install pdo_odbc extenstion for PHP
+# and cleanup files to reduce image size
+# PHP & Apache Configuration adjustments and permission fixes
 RUN apt-get update && \
-    ACCEPT_EULA=Y apt-get install -y unixodbc unixodbc-dev \
-    && docker-php-ext-configure pdo_odbc --with-pdo-odbc=unixODBC,/usr \
-    && docker-php-ext-install pdo_odbc
-
-# Install the latest IBM i Access DB2 Driver
-RUN curl https://public.dhe.ibm.com/software/ibmi/products/odbc/debs/dists/1.1.0/ibmi-acs-1.1.0.list | tee /etc/apt/sources.list.d/ibmi-acs-1.1.0.list && \
+    ACCEPT_EULA=Y apt-get install -y unixodbc unixodbc-dev curl && \
+    curl https://public.dhe.ibm.com/software/ibmi/products/odbc/debs/dists/1.1.0/ibmi-acs-1.1.0.list > /etc/apt/sources.list.d/ibmi-acs-1.1.0.list && \
     apt-get update && \
-    apt-get install -y ibm-iaccess 
+    apt-get install -y ibm-iaccess && \
+    docker-php-ext-configure pdo_odbc --with-pdo-odbc=unixODBC,/usr && \
+    docker-php-ext-install pdo_odbc && \
+    rm -rf /var/lib/apt/lists/* && \
+    echo "extension=odbc" >> /usr/local/etc/php/conf.d/docker-php-ext-odbc.ini && \
+    echo 'ServerName localhost' >> /etc/apache2/apache2.conf && \
+    sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-available/*.conf && \
+    sed -ri -e "s!/var/www/!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf && \
+    chown -R www-data:www-data /var/www/html
 
-# Copy ODBC driver configuration files
-COPY odbc-driver-configs/odbcinst.ini /etc/odbcinst.ini
-COPY odbc-driver-configs/odbc.ini /etc/odbc.ini
-
-##########################
-## IBMi ODBC SETUP END  ##
-##########################
-
-
-# Enable ODBC extension
-RUN echo "extension=odbc" >> /usr/local/etc/php/conf.d/docker-php-ext-odbc.ini
-
-# Set ServerName to suppress the Apache warning message
-RUN echo 'ServerName localhost' >> /etc/apache2/apache2.conf
-
-# Set the document root to the public directory (if you're using a framework like Laravel, otherwise this can just be /var/www/html)
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-
-# Update the default apache site with the config we created.
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-
-# Copy the test PHP file into the correct directory
-COPY frontend/ /var/www/html/public/
-
-# Adjust file permissions
-RUN chown -R www-data:www-data /var/www/html
