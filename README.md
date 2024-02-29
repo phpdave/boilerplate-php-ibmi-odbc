@@ -5,10 +5,11 @@
 $user = 'your_username';
 $pass = 'your_password';
 ```
-3. Modify odbc-driver-configs/odbc.ini
+3. Modify odbc-driver-configs/odbc.ini and set the system to your IBM i's IP address or DNS name.  Set Database to the name of the database (can be found in IBM i Access Schemas under Databases)
 
 ```
 System                  = 10.1.1.1
+Database                = YOURDATABASE
 ```
 
 4. Run docker-compose up --build
