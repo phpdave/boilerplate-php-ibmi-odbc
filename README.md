@@ -7,8 +7,9 @@ DB_DATABASE=yourdb
 DB_SYSTEM=your_dns_ip_of_system
 DB_LIBRARY_LIST=,lib1,lib2,lib3
 ```
-3. Run docker-compose up --build
-4. In your browser go to https://localhost:8080/odbctest.php
+3. rename odbc-driver-configs/ibmi-ca.crt.sample to odbc-driver-configs/ibmi-ca.crt and change it to your IBM i CA thats associated with your IBM i SSL
+4. Run docker-compose up --build
+5. In your browser go to https://localhost:8080/odbctest.php
 
 should see 
 
@@ -16,6 +17,6 @@ Connection successful!
 IBMREQD
 Y
 
-5. In your browser go to https://localhost:8080/info.php
+6. In your browser go to https://localhost:8080/info.php
 
 should see phpinfo information
