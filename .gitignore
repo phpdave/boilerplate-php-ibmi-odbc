@@ -1,3 +1,5 @@
 odbc-driver-configs/hostname
 odbc-driver-configs/hosts
 odbc-driver-configs/resolv.conf
+odbc-driver-configs/ibmi-ca.crt
+.env

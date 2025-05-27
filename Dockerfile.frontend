@@ -1,7 +1,24 @@
 FROM php:8.2-apache
 
+COPY ./odbc-driver-configs/ibmi-ca.crt /usr/local/share/ca-certificates/ibmi-ca.crt
+RUN update-ca-certificates
+
 # Set the document root (modify as needed)
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
+    && sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+RUN a2enmod ssl
+RUN a2ensite default-ssl
+
+RUN openssl req -x509 -nodes -days 365 \
+    -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost" \
+    -newkey rsa:2048 \
+    -keyout /etc/ssl/private/apache-selfsigned.key \
+    -out /etc/ssl/certs/apache-selfsigned.crt
+
+RUN sed -i 's#/etc/ssl/certs/ssl-cert-snakeoil.pem#/etc/ssl/certs/apache-selfsigned.crt#' /etc/apache2/sites-enabled/default-ssl.conf \
+    && sed -i 's#/etc/ssl/private/ssl-cert-snakeoil.key#/etc/ssl/private/apache-selfsigned.key#' /etc/apache2/sites-enabled/default-ssl.conf
 
 # Install UnixODBC
 # Install IBM i Access ODBC drivers
@@ -9,7 +26,7 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 # and cleanup files to reduce image size
 # PHP & Apache Configuration adjustments and permission fixes
 RUN apt-get update && \
-    ACCEPT_EULA=Y apt-get install -y unixodbc unixodbc-dev curl && \
+    ACCEPT_EULA=Y apt-get install -y unixodbc unixodbc-dev curl gettext-base && \
     curl https://public.dhe.ibm.com/software/ibmi/products/odbc/debs/dists/1.1.0/ibmi-acs-1.1.0.list > /etc/apt/sources.list.d/ibmi-acs-1.1.0.list && \
     apt-get update && \
     apt-get install -y ibm-iaccess && \
@@ -22,3 +39,44 @@ RUN apt-get update && \
     sed -ri -e "s!/var/www/!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf && \
     chown -R www-data:www-data /var/www/html
 
+
+RUN docker-php-ext-configure pdo_odbc --with-pdo-odbc=unixODBC,/usr \
+    && docker-php-ext-install pdo_odbc
+RUN a2enmod rewrite
+
+
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
+    && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
+    && php -r "unlink('composer-setup.php');"
+
+COPY . /var/www/html
+WORKDIR /var/www/html
+
+
+RUN mkdir -p /var/www/html/logs && \
+    chown -R www-data:www-data /var/www/html/logs && \
+    chmod -R 755 /var/www/html/logs
+
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    libzip-dev \
+    libicu-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    && docker-php-ext-install zip intl \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd
+
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
+# RUN composer install --no-dev --optimize-autoloader
+
+
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+EXPOSE 443

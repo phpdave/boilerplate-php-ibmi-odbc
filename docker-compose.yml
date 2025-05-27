@@ -1,6 +1,7 @@
 version: "3.8"
 services:
   frontend:
+    env_file: .env
     platform: linux/x86_64
     build:
       context: .
@@ -9,11 +10,12 @@ services:
       - ./frontend:/var/www/html/public
       - ./odbc-driver-configs/odbc.ini:/etc/odbc.ini
       - ./odbc-driver-configs/odbcinst.ini:/etc/odbcinst.ini
+      - ./odbc-driver-configs/odbc.ini.template:/etc/odbc.ini.template
     container_name: frontend_php_app
     environment:
       - APPLICATION_ENV=development
     ports:
-    - "8080:80" # Map port 8080 on the host to port 80 in the container
+    - "8080:443" # Map port 8080 on the host to port 443 in the container
     networks:
       - shared-local-network
       

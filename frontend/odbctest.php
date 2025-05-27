@@ -1,8 +1,8 @@
 <?php
 // Connection information
 $dsn = 'odbc:DockerProductionDSN';
-$user = 'your_username';
-$pass = 'your_password';
+$user = $_ENV['DB_USER'];
+$pass = $_ENV['DB_PASS'];
 
 try {
     // Connect to IBM i
