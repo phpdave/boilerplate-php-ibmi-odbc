@@ -5,8 +5,8 @@ Description             = Production IBM i DSN
 Driver                  = DOCKER IBM i Access ODBC Driver
 System                  = {{DB_SYSTEM}}
 Database                = {{DB_DATABASE}}
-UserID                  = {{DB_USERID}}
-Password                = {{DB_PASSWORD}}
+UserID                  = {{DB_USER}}
+Password                = {{DB_PASS}}
 Naming                  = 0
 ; library list is used to resolve unqualified object names
 DefaultLibraries        = {{DB_LIBRARY_LIST}}
