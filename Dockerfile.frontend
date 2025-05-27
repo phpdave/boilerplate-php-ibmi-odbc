@@ -26,7 +26,7 @@ RUN sed -i 's#/etc/ssl/certs/ssl-cert-snakeoil.pem#/etc/ssl/certs/apache-selfsig
 # and cleanup files to reduce image size
 # PHP & Apache Configuration adjustments and permission fixes
 RUN apt-get update && \
-    ACCEPT_EULA=Y apt-get install -y unixodbc unixodbc-dev curl gettext-base && \
+    ACCEPT_EULA=Y apt-get install -y unixodbc unixodbc-dev curl  && \
     curl https://public.dhe.ibm.com/software/ibmi/products/odbc/debs/dists/1.1.0/ibmi-acs-1.1.0.list > /etc/apt/sources.list.d/ibmi-acs-1.1.0.list && \
     apt-get update && \
     apt-get install -y ibm-iaccess && \

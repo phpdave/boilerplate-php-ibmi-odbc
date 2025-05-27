@@ -5,10 +5,11 @@ Description             = Production IBM i DSN
 Driver                  = DOCKER IBM i Access ODBC Driver
 System                  = {{DB_SYSTEM}}
 Database                = {{DB_DATABASE}}
-UserID                  = 
+UserID                  = {{DB_USERID}}
+Password                = {{DB_PASSWORD}}
 Naming                  = 0
 ; library list is used to resolve unqualified object names
-DefaultLibraries        = QGPL
+DefaultLibraries        = {{DB_LIBRARY_LIST}}
 ;DefaultLibraries=mylib,mylib2,mylib3 is specified, then CURRENT SCHEMA special register is set to MYLIB and the library list would be MYLIB, MYLIB2, and MYLIB3.
 ;DefaultLibraries=,mylib,mylib2,mylib3;NAM=1 is specified, then CURRENT SCHEMA special register is set to *LIBL and the library list would be MYLIB, MYLIB2, and MYLIB3.
 ;DefaultLibraries=,mylib,mylib2,mylib3;NAM=0 is specified, then CURRENT SCHEMA special register is set to MYUSER and the library list would be MYLIB, MYLIB2, and MYLIB3.
